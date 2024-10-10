@@ -9,6 +9,9 @@ import Clock from "./Clock";
 
 const Weather = ({ humadityIcon, windIcon }) => {
   const [weatherData, setWeatherData] = useState(false);
+  const [localTime, setLocalTime] = useState("");
+  const [timeZoneOffset, setTimeZoneOffset] = useState(0)
+
   const API_KEY = "6b94ffd107e62fe19e74c49b077d38fc";   //API KEY
 
   const allIcon = {
@@ -44,20 +47,42 @@ const Weather = ({ humadityIcon, windIcon }) => {
         return;
       }
       const icon = allIcon[data.weather[0].icon] || clear_Icon;
+      // const currentUTC = new Date().getTime(); // Current time in milliseconds from Unix Epoch
+      // const localTime = new Date(currentUTC + timezoneOffset); // Adjust current UTC with the city's timezone offset
       setWeatherData({
-        humidity: data.main.humidity,  //get humidity
-        windSpeed: data.wind.speed,    //get wind speed
-        temp: Math.trunc(data.main.temp), //get temp
-        location: data.name, //get city name
-        country: data.sys.country, //get country 
-        icon: icon, //get weather icon
+        humidity: data.main.humidity,         //get humidity
+        windSpeed: data.wind.speed,           //get wind speed
+        temp: Math.trunc(data.main.temp),    //get temp
+        location: data.name,                 //get city name
+        country: data.sys.country,           //get country 
+        icon: icon,                         //get weather icon
       });
+      setTimeZoneOffset(data.timezone); // Format local time
+
     } catch (error) {
       console.error(error);
       alert("Error fetching weather data.");
     }
   };
 
+  const updateTime = (offset) => {
+    const currentUTC = new Date().getTime(); // Get current UTC time
+    const localTime = new Date(currentUTC + offset * 1000); // Calculate local time with offset
+    setLocalTime(localTime.toUTCString()); // Set the local time in desired format
+  };
+
+  useEffect(() => {
+    // When timezoneOffset is updated, start updating the time every second
+    if (timeZoneOffset !== 0) {
+      const interval = setInterval(() => {
+        updateTime(timeZoneOffset); // Update time every second based on timezone
+      }, 1000);
+
+      // Cleanup the interval when component unmounts or the timezone changes
+      return () => clearInterval(interval);
+    }
+  }, [timeZoneOffset]);  
+  
   const fetchUserLocationWeather = async (lat, lon) => {
     try {
       const URL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
@@ -101,10 +126,10 @@ const Weather = ({ humadityIcon, windIcon }) => {
           <Searchbar searchvalue={search} />
           {weatherData ? (
             <>
-              <Clock />
               <div className="d-flex flex-column justify-content-between h-75 mt-5">
+              <Clock localTime={localTime} />
                 <div className="text-center">
-                  <img
+                <img
                     src={weatherData.icon}
                     alt="weather-icon"
                     style={{ width: "60px" }}
@@ -152,7 +177,7 @@ const Weather = ({ humadityIcon, windIcon }) => {
             </>
           ) : (
             <>
-              <h6 className="text-center">Fetching Weather data...</h6>
+              <h6 className="text-center mt-5">Fetching Weather data...</h6>
             </>
           )}
         </div>
