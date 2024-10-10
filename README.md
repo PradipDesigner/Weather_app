@@ -12,8 +12,6 @@ This is a weather application built using React, which allows users to search fo
     * City and country name
 
 * Dynamic Time Update: The app adjusts and displays the local time of the searched city based on the timezone data from the OpenWeatherMap API.
-* Default Location Handling: The app automatically detects the user’s location using the browser’s geolocation feature and shows the weather for that location by default. If location access is denied, the app defaults to showing the weather for London.
-* Clock Component: The app includes a clock that updates in real time, displaying the local time of the selected city.
 
 # Technologies and tools 
 
